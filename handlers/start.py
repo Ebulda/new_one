@@ -11,7 +11,7 @@ async def start_button(message: types.Message):
     try:
         Database().sql_insert_user_query(
             telegram_id=message.from_user.id,
-            username = message.from_user.username,
+            username=message.from_user.username,
             first_name=message.from_user.first_name,
             last_name=message.from_user.last_name,
         )

@@ -10,6 +10,46 @@ CREATE_USER_TABLE_QUERY = """
         )
 """
 
+CREATE_USER_FORM_TABLE_QUERY = """
+        CREATE TABLE IF NOT EXISTS user_form
+        (
+        ID INTEGER PRIMARY KEY,
+        TELEGRAM_ID INTEGER,
+        NICKNAME CHAR(50),
+        BIO TEXT,
+        AGE INTEGER,
+        OCCUPATION CHAR(50),
+        PHOTO TEXT,
+        UNIQUE (TELEGRAM_ID)
+        )
+"""
+
+CREATE_LIKE_TABLE_QUERY = """
+        CREATE TABLE IF NOT EXISTS like_user
+        (
+        ID INTEGER PRIMARY KEY,
+        OWNER_TELEGRAM_ID INTEGER,
+        LIKER_TELEGRAM_ID INTEGER,
+        UNIQUE (OWNER_TELEGRAM_ID, LIKER_TELEGRAM_ID)
+        )
+"""
+
 INSERT_USER_QUERY = """
 INSERT INTO telegram_users VALUES(?,?,?,?,?)
+"""
+
+INSERT_USER_FORM_QUERY = """
+INSERT INTO user_form VALUES(?,?,?,?,?,?,?)
+"""
+
+INSERT_LIKE_QUERY = """
+INSERT INTO like_user VALUES(?,?,?)
+"""
+
+SELECT_USER_FORM_QUERY = """
+SELECT * FROM user_form WHERE TELEGRAM_ID = ?
+"""
+
+SELECT_ALL_USERS_FORM_QUERY = """
+SELECT * FROM user_form
 """

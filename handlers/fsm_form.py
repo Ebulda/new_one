@@ -1,9 +1,13 @@
+import re
+import sqlite3
+import random
+
 from aiogram import types, Dispatcher
 from config import bot
 from database.sql_commands import Database
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-
+from keyboards.inline_buttoons import like_dislike_keyboard
 
 
 class FormStates(StatesGroup):
@@ -78,6 +82,20 @@ async def load_photo(message: types.Message, state: FSMContext):
         destination_dir='D:\pythonProject\media'
     )
     async with state.proxy() as data:
+        try:
+            Database().sql_insert_user_form_query(
+                telegram_id=message.from_user.id,
+                nickname=data['nickname'],
+                bio=data['bio'],
+                age=data['age'],
+                occupation=data['occupation'],
+                photo=path.name,
+            )
+        except sqlite3.IntegrityError:
+            await bot.send_message(
+                chat_id=message.from_user.id,
+                text='You have registered before'
+            )
         with open(path.name, 'rb') as photo:
             await bot.send_photo(
                 chat_id=message.chat.id,
@@ -94,6 +112,49 @@ async def load_photo(message: types.Message, state: FSMContext):
         await state.finish()
 
 
+async def my_profile_call(call: types.CallbackQuery):
+    user_form = Database().sql_select_user_form_query(
+        telegram_id=call.from_user.id
+    )
+    with open(user_form[0]["photo"], 'rb') as photo:
+        await bot.send_photo(
+            chat_id=call.from_user.id,
+            photo=photo,
+            caption=f"Nickname: {user_form[0]['nickname']}\n"
+                    f"Bio: {user_form[0]['bio']}\n"
+                    f"Age: {user_form[0]['age']}\n"
+                    f"Occupation: {user_form[0]['occupation']}\n"
+        )
+
+async def random_profiles_call(call: types.CallbackQuery):
+    users = Database().sql_select_all_user_form_query()
+    random_form = random.choice(users)
+    with open(random_form['photo'], 'rb') as photo:
+        await bot.send_photo(
+            chat_id=call.from_user.id,
+            photo=photo,
+            caption=f"Nickname: {random_form['nickname']}\n"
+                    f"Bio: {random_form['bio']}\n"
+                    f"Age: {random_form['age']}\n"
+                    f"Occupation: {random_form['occupation']}\n",
+            reply_markup = await like_dislike_keyboard(
+                owner_tg_id=random_form['telegram_id']
+            )
+        )
+
+async def like_detect_call(call: types.CallbackQuery):
+    owner_tg_id = re.sub("user_form_like_", "", call.data)
+    try:
+        Database().sql_insert_like_query(
+            owner=owner_tg_id,
+            liker=call.from_user.id
+        )
+    except sqlite3.IntegrityError:
+        pass
+    finally:
+        await random_profiles_call(call=call)
+
+
 def register_fsm_form_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(fsm_start, lambda call: call.data == 'fsm_start')
     dp.register_message_handler(load_nickname, state=FormStates.nickname, content_types=['text'])
@@ -101,3 +162,8 @@ def register_fsm_form_handlers(dp: Dispatcher):
     dp.register_message_handler(load_age, state=FormStates.age, content_types=['text'])
     dp.register_message_handler(load_occupation, state=FormStates.occupation, content_types=['text'])
     dp.register_message_handler(load_photo, state=FormStates.photo, content_types=types.ContentType.PHOTO)
+    dp.register_callback_query_handler(my_profile_call, lambda call: call.data == 'my_profile')
+    dp.register_callback_query_handler(random_profiles_call, lambda call: call.data == 'random_profile')
+    dp.register_callback_query_handler(like_detect_call, lambda call: 'user_form_like_' in call.data)
+
+

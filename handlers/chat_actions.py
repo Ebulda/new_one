@@ -17,5 +17,5 @@ async def chat_action(message: types.Message):
                     text=f'{message.from_user.username}, ты подозрителен и можешь быть забанен!!11!!1!1'
                 )
 
-def register_chat_action_handlers(dp: Dispatcher):
+def  register_chat_action_handlers(dp: Dispatcher):
     dp.register_message_handler(chat_action)

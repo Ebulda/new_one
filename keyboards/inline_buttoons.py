@@ -18,10 +18,15 @@ async def start_keyboard():
         'Referral Menu',
         callback_data='reference_menu'
     )
+    latest_news_button = InlineKeyboardButton(
+        'Latest news',
+        callback_data='latest_news'
+    )
     markup.add(registration_button)
     markup.add(my_profile_button)
     markup.add(random_profile_button)
     markup.add(reference_menu_button)
+    markup.add(latest_news_button)
     return markup
 
 async def like_dislike_keyboard(owner_tg_id):

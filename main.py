@@ -1,6 +1,6 @@
 from aiogram import executor
 from config import dp
-from handlers import start, chat_actions, fsm_form, reference_menu
+from handlers import start, chat_actions, fsm_form, reference_menu, callback
 from database.sql_commands import Database
 
 
@@ -9,6 +9,7 @@ async def onstart_up(_):
     db.sql_create_tables()
 
 start.register_start_handlers(dp=dp)
+callback.register_callback_handlers(dp=dp)
 fsm_form.register_fsm_form_handlers(dp=dp)
 reference_menu.register_reference_menu_handlers(dp=dp)
 chat_actions.register_chat_action_handlers(dp=dp)
